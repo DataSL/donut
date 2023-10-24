@@ -178,8 +178,8 @@ export class Visual implements IVisual {
 
       region && labels.push(region);
       value && data.push(value);
-      image && images.push(image);
-      imageLegend && imageLegends.push(imageLegend);
+      image ? images.push(image) : images.push("");
+      imageLegend ? imageLegends.push(imageLegend) : imageLegends.push("");
     });
   };
 
