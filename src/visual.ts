@@ -67,8 +67,23 @@ export class Visual implements IVisual {
     this.formattingSettingsService = new FormattingSettingsService();
     this.host = options.host;
     this.selectionManager = this.host.createSelectionManager();
+    this.handleContextMenu();
 
     ReactDOM.render(this.reactRoot, this.target);
+  }
+
+  private handleContextMenu() {
+    this.target.addEventListener("contextmenu", (event) => {
+      const mouseEvent: MouseEvent = event;
+      this.selectionManager.showContextMenu(
+        {},
+        {
+          x: mouseEvent.clientX,
+          y: mouseEvent.clientY,
+        }
+      );
+      mouseEvent.preventDefault();
+    });
   }
 
   public selectCategory = debounce((index) => {
