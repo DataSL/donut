@@ -1,5 +1,7 @@
 import * as React from "react";
 import { Doughnut, getElementAtEvent } from "react-chartjs-2";
+import ISelectionId = powerbi.visuals.ISelectionId;
+import TooltipShowOptions = powerbi.extensibility.TooltipShowOptions;
 
 import { Chart, ArcElement } from "chart.js";
 Chart.register(ArcElement);
@@ -12,6 +14,7 @@ export interface State {
   images: string[];
   imageLegends: string[];
   colors: string[];
+  selectionIds: ISelectionId[];
   selectedColors?: string[];
   donutRef?: React.MutableRefObject<any>;
   selectedIndex?: number;
@@ -54,6 +57,7 @@ export interface State {
   rightUnderline?: boolean;
   rightColor?: string;
   selectCategory?: (number) => void;
+  tooltipService?: any;
 }
 
 export const initialState: State = {
@@ -62,6 +66,7 @@ export const initialState: State = {
   images: [],
   imageLegends: [],
   colors: [],
+  selectionIds: [],
   selectedColors: [],
   donutRef: null,
   selectedIndex: null,
@@ -151,9 +156,32 @@ export class Donut extends React.Component<any, State> {
 
       this.state.selectedColors = newColors;
       this.state.selectedIndex = elementIndex;
+
+      const tooltip: TooltipShowOptions = {
+        dataItems: [
+          {
+            displayName: this.state.labels[elementIndex],
+            value: formatNumber(
+              this.state.data[this.state.selectedIndex],
+              this.state.decimalPlaces,
+              this.state.displayUnits,
+              this.state.format
+            ),
+          },
+        ],
+        identities: [this.state.selectionIds[this.state.selectedIndex]],
+        coordinates: [e.clientX, e.clientY],
+        isTouchEvent: false,
+      };
+
+      this.state.tooltipService.show(tooltip);
     } else {
       this.state.selectedColors = this.state.colors;
       this.state.selectedIndex = null;
+      this.state.tooltipService.hide({
+        isTouchEvent: false,
+        immediately: true,
+      });
     }
 
     const labels = this.state.labels;
@@ -161,6 +189,7 @@ export class Donut extends React.Component<any, State> {
     const images = this.state.images;
     const imageLegends = this.state.imageLegends;
     const colors = this.state.colors;
+    const selectionIds = this.state.selectionIds;
     const selectedColors = this.state.selectedColors;
     const selectedIndex = this.state.selectedIndex;
 
@@ -170,6 +199,7 @@ export class Donut extends React.Component<any, State> {
       images,
       imageLegends,
       colors,
+      selectionIds,
       selectedColors,
       selectedIndex,
     });
@@ -178,7 +208,7 @@ export class Donut extends React.Component<any, State> {
   }
 
   // Right legend
-  handleOnMouseEnter(rowIndex) {
+  handleOnMouseMove(e, rowIndex) {
     const newColors = this.state.colors.map((color, i) => {
       if (i !== rowIndex) {
         return color + "55";
@@ -189,11 +219,31 @@ export class Donut extends React.Component<any, State> {
     this.state.selectedColors = newColors;
     this.state.selectedIndex = rowIndex;
 
+    const tooltip: TooltipShowOptions = {
+      dataItems: [
+        {
+          displayName: this.state.labels[rowIndex],
+          value: formatNumber(
+            this.state.data[this.state.selectedIndex],
+            this.state.decimalPlaces,
+            this.state.displayUnits,
+            this.state.format
+          ),
+        },
+      ],
+      identities: [this.state.selectionIds[this.state.selectedIndex]],
+      coordinates: [e.clientX, e.clientY],
+      isTouchEvent: false,
+    };
+
+    this.state.tooltipService.show(tooltip);
+
     const labels = this.state.labels;
     const data = this.state.data;
     const images = this.state.images;
     const imageLegends = this.state.imageLegends;
     const colors = this.state.colors;
+    const selectionIds = this.state.selectionIds;
     const selectedColors = this.state.selectedColors;
     const selectedIndex = this.state.selectedIndex;
 
@@ -203,6 +253,7 @@ export class Donut extends React.Component<any, State> {
       images,
       imageLegends,
       colors,
+      selectionIds,
       selectedColors,
       selectedIndex,
     });
@@ -219,6 +270,7 @@ export class Donut extends React.Component<any, State> {
     const images = this.state.images;
     const imageLegends = this.state.imageLegends;
     const colors = this.state.colors;
+    const selectionIds = this.state.selectionIds;
     const selectedColors = this.state.colors;
     const selectedIndex = this.state.selectedIndex;
 
@@ -228,6 +280,7 @@ export class Donut extends React.Component<any, State> {
       images,
       imageLegends,
       colors,
+      selectionIds,
       selectedColors,
       selectedIndex,
     });
@@ -407,7 +460,7 @@ export class Donut extends React.Component<any, State> {
                 <div
                   className="right-legend-row"
                   style={this.getStyle(i)}
-                  onMouseEnter={() => this.handleOnMouseEnter(i)}
+                  onMouseMove={(e) => this.handleOnMouseMove(e, i)}
                   onMouseLeave={() => this.handleOnMouseLeave()}
                 >
                   <div

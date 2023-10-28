@@ -51,6 +51,12 @@ import debounce from "lodash.debounce";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { VisualFormattingSettingsModel } from "./settings";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
+import {
+  ITooltipServiceWrapper,
+  TooltipEnabledDataPoint,
+} from "powerbi-visuals-utils-tooltiputils";
+
+import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 
 export class Visual implements IVisual {
   private target: HTMLElement;
@@ -60,6 +66,7 @@ export class Visual implements IVisual {
   private host;
   private selectionManager: ISelectionManager;
   private categoryColors;
+  private tooltipServiceWrapper: ITooltipServiceWrapper;
 
   constructor(options: VisualConstructorOptions) {
     this.reactRoot = React.createElement(Donut, {});
@@ -69,7 +76,44 @@ export class Visual implements IVisual {
     this.selectionManager = this.host.createSelectionManager();
     this.handleContextMenu();
 
+    /* this.tooltipServiceWrapper = createTooltipServiceWrapper(
+      this.host.tooltipService,
+      options.element
+    );
+
+    const bodyElement = d3.select("body");
+
+    this.tooltipServiceWrapper.addTooltip(
+      bodyElement,
+      (tooltipEvent: TooltipEventArgs<TooltipEnabledDataPoint>) => {
+        console.log(tooltipEvent);
+        return tooltipEvent.data.tooltipInfo;
+      }
+    ); */
+
     ReactDOM.render(this.reactRoot, this.target);
+  }
+
+  private getTooltipData(
+    datapoint: TooltipEnabledDataPoint
+  ): VisualTooltipDataItem[] {
+    console.log(datapoint);
+
+    const formattedValue = "1.2";
+    const language = "fr";
+    return [
+      {
+        displayName: "truc",
+        value: formattedValue,
+        color: "green",
+        header: language && "displayed language " + language,
+      },
+    ];
+  }
+
+  private getDataPointIdentity(datapoint: TooltipEnabledDataPoint): void {
+    console.log(datapoint);
+    return this.host.getSelector();
   }
 
   private handleContextMenu() {
@@ -219,6 +263,8 @@ export class Visual implements IVisual {
 
       const colors = this.categoryColors.map((cc) => cc.color);
 
+      const selectionIds = this.categoryColors.map((cc) => cc.selectionId);
+
       // VALUES
       this.setValues(dataView, data, labels, images, imageLegends);
 
@@ -239,6 +285,7 @@ export class Visual implements IVisual {
           images,
           imageLegends,
           colors,
+          selectionIds,
           selectedColors: colors,
           displayUnits: parseInt(generalSettings.displayUnits.value.toString()),
           decimalPlaces: generalSettings.decimalPlaces.value,
@@ -283,6 +330,7 @@ export class Visual implements IVisual {
           rightUnderline: rightLegendSettings.rightUnderline.value,
           rightColor: rightLegendSettings.rightColor.value.value,
           selectCategory: this.selectCategory,
+          tooltipService: this.host.tooltipService,
         });
       }
     } else {
