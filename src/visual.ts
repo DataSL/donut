@@ -57,6 +57,7 @@ import {
 } from "powerbi-visuals-utils-tooltiputils";
 
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
+import IVisualEventService = powerbi.extensibility.IVisualEventService;
 
 export class Visual implements IVisual {
   private target: HTMLElement;
@@ -67,6 +68,7 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
   private categoryColors;
   private tooltipServiceWrapper: ITooltipServiceWrapper;
+  private events: IVisualEventService;
 
   constructor(options: VisualConstructorOptions) {
     this.reactRoot = React.createElement(Donut, {});
@@ -75,6 +77,7 @@ export class Visual implements IVisual {
     this.host = options.host;
     this.selectionManager = this.host.createSelectionManager();
     this.handleContextMenu();
+    this.events = options.host.eventService;
 
     /* this.tooltipServiceWrapper = createTooltipServiceWrapper(
       this.host.tooltipService,
@@ -228,6 +231,8 @@ export class Visual implements IVisual {
   };
 
   public update(options: VisualUpdateOptions) {
+    this.events.renderingStarted(options);
+
     const colorPalette: ISandboxExtendedColorPalette = this.host.colorPalette;
 
     if (
@@ -336,6 +341,8 @@ export class Visual implements IVisual {
     } else {
       this.clear();
     }
+
+    this.events.renderingFinished(options);
   }
 
   private clear() {
