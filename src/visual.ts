@@ -51,10 +51,7 @@ import debounce from "lodash.debounce";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { VisualFormattingSettingsModel } from "./settings";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
-import {
-  ITooltipServiceWrapper,
-  TooltipEnabledDataPoint,
-} from "powerbi-visuals-utils-tooltiputils";
+import { TooltipEnabledDataPoint } from "powerbi-visuals-utils-tooltiputils";
 
 import xss from "xss";
 
