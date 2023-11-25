@@ -56,6 +56,8 @@ import {
   TooltipEnabledDataPoint,
 } from "powerbi-visuals-utils-tooltiputils";
 
+import xss from "xss";
+
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
 
@@ -67,7 +69,6 @@ export class Visual implements IVisual {
   private host;
   private selectionManager: ISelectionManager;
   private categoryColors;
-  private tooltipServiceWrapper: ITooltipServiceWrapper;
   private events: IVisualEventService;
 
   constructor(options: VisualConstructorOptions) {
@@ -210,16 +211,16 @@ export class Visual implements IVisual {
       for (let i = 0; i < row.length; i++) {
         const cell = row[i];
 
-        if (dataView.table.columns[i].roles.category) region = cell;
+        if (dataView.table.columns[i].roles.category) region = xss(cell);
 
         if (dataView.table.columns[i].roles.value) {
-          value = parseFloat(cell as string);
+          value = parseFloat(xss(cell as string));
         }
         if (dataView.table.columns[i].roles.image) {
-          image = cell as string;
+          image = xss(cell as string);
         }
         if (dataView.table.columns[i].roles.imageLegend) {
-          imageLegend = cell as string;
+          imageLegend = xss(cell as string);
         }
       }
 
