@@ -53,7 +53,7 @@ import { VisualFormattingSettingsModel } from "./settings";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import { TooltipEnabledDataPoint } from "powerbi-visuals-utils-tooltiputils";
 
-import xss from "xss";
+import filterXSS from "xss";
 
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
@@ -208,17 +208,17 @@ export class Visual implements IVisual {
       for (let i = 0; i < row.length; i++) {
         const cell = row[i];
 
-        if (dataView.table.columns[i].roles.category) region = xss(cell);
+        if (dataView.table.columns[i].roles.category) region = filterXSS(cell);
 
         if (dataView.table.columns[i].roles.value) {
-          value = parseFloat(xss(cell as string));
+          value = parseFloat(filterXSS(cell as string));
         }
         if (dataView.table.columns[i].roles.image) {
-          image = xss(cell as string);
+          image = filterXSS(cell as string);
           if (image.startsWith("http")) image = "";
         }
         if (dataView.table.columns[i].roles.imageLegend) {
-          imageLegend = xss(cell as string);
+          imageLegend = filterXSS(cell as string);
         }
       }
 
