@@ -21,13 +21,6 @@
       "kind": "Measure"
     }
   ],
-  "privileges": [
-    {
-      "name": "WebAccess",
-      "essential": true,
-      "parameters": ["https://*"]
-    }
-  ],
   "objects": {
     "general": {
       "displayName": "General",
