@@ -215,7 +215,7 @@ export class Visual implements IVisual {
         }
         if (dataView.table.columns[i].roles.image) {
           image = filterXSS(cell as string);
-          if (image.startsWith("http")) image = "";
+          if (image.includes("http")) image = "";
         }
         if (dataView.table.columns[i].roles.imageLegend) {
           imageLegend = filterXSS(cell as string);
