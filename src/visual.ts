@@ -53,7 +53,7 @@ import { VisualFormattingSettingsModel } from "./settings";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import { TooltipEnabledDataPoint } from "powerbi-visuals-utils-tooltiputils";
 
-import filterXSS from "xss";
+import * as DOMPurify from "dompurify";
 
 import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
@@ -198,6 +198,10 @@ export class Visual implements IVisual {
     });
   };
 
+  sanitizeHTML = (input: string) => {
+    return input.replace(/<|>/g, "");
+  };
+
   setValues = (dataView, data, labels, images, imageLegends) => {
     dataView.table.rows.forEach((row) => {
       let region;
@@ -208,17 +212,29 @@ export class Visual implements IVisual {
       for (let i = 0; i < row.length; i++) {
         const cell = row[i];
 
-        if (dataView.table.columns[i].roles.category) region = filterXSS(cell);
+        const sanitizeFilters = {
+          USE_PROFILES: { html: false, mathMl: false, svg: false },
+        };
+
+        if (dataView.table.columns[i].roles.category) {
+          region = DOMPurify.sanitize(cell as string, sanitizeFilters);
+        }
 
         if (dataView.table.columns[i].roles.value) {
-          value = parseFloat(filterXSS(cell as string));
+          value = parseFloat(cell as string);
         }
         if (dataView.table.columns[i].roles.image) {
-          image = filterXSS(cell as string);
+          image = DOMPurify.sanitize(
+            this.sanitizeHTML(cell as string),
+            sanitizeFilters
+          );
           if (image.includes("http")) image = "";
         }
         if (dataView.table.columns[i].roles.imageLegend) {
-          imageLegend = filterXSS(cell as string);
+          imageLegend = DOMPurify.sanitize(
+            this.sanitizeHTML(cell as string),
+            sanitizeFilters
+          );
         }
       }
 
