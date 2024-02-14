@@ -51,12 +51,13 @@ import debounce from "lodash.debounce";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { VisualFormattingSettingsModel } from "./settings";
 import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
-import { TooltipEnabledDataPoint } from "powerbi-visuals-utils-tooltiputils";
 
 import * as DOMPurify from "dompurify";
 
-import VisualTooltipDataItem = powerbi.extensibility.VisualTooltipDataItem;
 import IVisualEventService = powerbi.extensibility.IVisualEventService;
+import LicenseInfoResult = powerbi.extensibility.visual.LicenseInfoResult;
+import LicenseNotificationType = powerbi.LicenseNotificationType;
+import IVisualLicenseManager = powerbi.extensibility.IVisualLicenseManager;
 
 export class Visual implements IVisual {
   private target: HTMLElement;
@@ -67,6 +68,9 @@ export class Visual implements IVisual {
   private selectionManager: ISelectionManager;
   private categoryColors;
   private events: IVisualEventService;
+  private licenseManager: IVisualLicenseManager;
+  private notificationType;
+  private hasServicePlans;
 
   constructor(options: VisualConstructorOptions) {
     this.reactRoot = React.createElement(Donut, {});
@@ -77,44 +81,46 @@ export class Visual implements IVisual {
     this.handleContextMenu();
     this.events = options.host.eventService;
 
-    /* this.tooltipServiceWrapper = createTooltipServiceWrapper(
-      this.host.tooltipService,
-      options.element
-    );
+    this.licenseManager = options.host.licenseManager;
 
-    const bodyElement = d3.select("body");
+    this.licenseManager
+      .getAvailableServicePlans()
+      .then((result: LicenseInfoResult) => {
+        this.notificationType = LicenseNotificationType.VisualIsBlocked;
+        this.hasServicePlans = !!(
+          result.plans &&
+          result.plans.length &&
+          result.plans[0].spIdentifier ==
+            "dslc1696681601173.donutchartimage.donutimage" &&
+          (result.plans[0].state == powerbi.ServicePlanState.Active ||
+            result.plans[0].state == powerbi.ServicePlanState.Warning)
+        );
 
-    this.tooltipServiceWrapper.addTooltip(
-      bodyElement,
-      (tooltipEvent: TooltipEventArgs<TooltipEnabledDataPoint>) => {
-        console.log(tooltipEvent);
-        return tooltipEvent.data.tooltipInfo;
-      }
-    ); */
+        // display notification if the user doesn't have licenses
+        if (!this.hasServicePlans) {
+          this.licenseManager
+            .notifyLicenseRequired(this.notificationType)
+            .then((value) => {
+              if (value) {
+                console.log("Notification is displayed", value);
+              } else {
+                // It might happen for several scenarios, for example when the visual try to raise a General notification in edit mode or in an unsupported environment.
+                console.log("Notification is not displayed", value);
+              }
+            })
+            .catch((err) => {
+              console.log("ERROR", err);
+            });
+        } else {
+          ReactDOM.render(this.reactRoot, this.target);
+        }
+      })
+      .catch((err) => {
+        this.hasServicePlans = undefined;
+        console.log(err);
+      });
 
     ReactDOM.render(this.reactRoot, this.target);
-  }
-
-  private getTooltipData(
-    datapoint: TooltipEnabledDataPoint
-  ): VisualTooltipDataItem[] {
-    console.log(datapoint);
-
-    const formattedValue = "1.2";
-    const language = "fr";
-    return [
-      {
-        displayName: "truc",
-        value: formattedValue,
-        color: "green",
-        header: language && "displayed language " + language,
-      },
-    ];
-  }
-
-  private getDataPointIdentity(datapoint: TooltipEnabledDataPoint): void {
-    console.log(datapoint);
-    return this.host.getSelector();
   }
 
   private handleContextMenu() {
