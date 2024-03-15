@@ -86,7 +86,7 @@ export class Visual implements IVisual {
     this.licenseManager
       .getAvailableServicePlans()
       .then((result: LicenseInfoResult) => {
-        this.notificationType = LicenseNotificationType.VisualIsBlocked;
+        this.notificationType = LicenseNotificationType.General;
         this.hasServicePlans = !!(
           result.plans &&
           result.plans.length &&
@@ -111,8 +111,6 @@ export class Visual implements IVisual {
             .catch((err) => {
               console.log("ERROR", err);
             });
-        } else {
-          ReactDOM.render(this.reactRoot, this.target);
         }
       })
       .catch((err) => {
